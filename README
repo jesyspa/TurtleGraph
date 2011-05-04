@@ -1,0 +1,7 @@
+This is a project intended as an introduction to Python.  More developers of
+any experience level are welcome.
+
+Please do note that we appreciate the code being written in compliance with
+PEP 8 and PEP 257.  If possible, also write doctests and/or unittests for code
+you write, or make a note in the commit that someone should do this.
+
