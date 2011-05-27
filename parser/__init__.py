@@ -3,6 +3,7 @@
 Classes:
 Parser   Translate strings into expressions.
 
+GitLearning By Mewtwo.
 """
 
 __all__ = []
