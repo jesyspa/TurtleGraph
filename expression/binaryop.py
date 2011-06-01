@@ -1,7 +1,12 @@
 """Provide classes for binary operatons.
 
 Classes:
-BinaryOp  Base class for binary operators
+BinaryOp      Base class for binary operators
+SumOp         Class for sum expressions
+DifferenceOp  Class for difference expressions
+ProductOp     Class for product expressions
+QuotientOp    Class for quotient expressions
+PowerOp       Class for power expressions
 
 """
 
