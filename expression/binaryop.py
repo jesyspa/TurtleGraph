@@ -16,13 +16,13 @@ class BinaryOp(expression.Expression):
     """Represent an expression with a binary operator.
 
     The two operands are contained within this expression.  This is a base
-    class: evaluate(self) should be overloaded.
+    class: evaluate(self, variables) should be overloaded.
 
     Methods:
         __init__(self, first, operator, second)
             Initialise the attributes.
 
-        evaluate(self) [inherited]
+        evaluate(self, variables) [inherited]
             Evaluate this expression.
 
         __str__(self)
@@ -82,7 +82,7 @@ class SumOp(BinaryOp):
         __init__(self, first, second)
             Initialise the attributes; the operator is not necessary.
 
-        evaluate(self)
+        evaluate(self, variables)
             Return the sum of first and second.
 
     """
@@ -91,9 +91,9 @@ class SumOp(BinaryOp):
         # Putting spaces around the + for readability.
         BinaryOp.__init__(self, first, " + ", second)
 
-    def evaluate(self):
+    def evaluate(self, variables):
         """Return the sum of first and second."""
-        return first.evaluate() + second.evaluate()
+        return first.evaluate(variables) + second.evaluate(variables)
 
     def __repr__(self):
         return "SumOp({0!r}, {1!r})".format(self.first, self.second)
@@ -110,7 +110,7 @@ class DifferenceOp(BinaryOp):
         __init__(self, first, second)
             Initialise the attributes; the operator is not necessary.
 
-        evaluate(self)
+        evaluate(self, variables)
             Return the difference of first and second.
 
     """
@@ -119,9 +119,9 @@ class DifferenceOp(BinaryOp):
         # Putting spaces around the - for readability.
         BinaryOp.__init__(self, first, " - ", second)
 
-    def evaluate(self):
+    def evaluate(self, variables):
         """Return the difference of first and second."""
-        return first.evaluate() - second.evaluate()
+        return first.evaluate(variables) - second.evaluate(variables)
 
     def __repr__(self):
         return "DiffOp({0!r}, {1!r})".format(self.first, self.second)
@@ -138,7 +138,7 @@ class ProductOp(BinaryOp):
         __init__(self, first, second)
             Initialise the attributes; the operator is not necessary.
 
-        evaluate(self)
+        evaluate(self, variables)
             Return the product of first and second.
 
     """
@@ -146,9 +146,9 @@ class ProductOp(BinaryOp):
         """Initialise the attributes."""
         BinaryOp.__init__(self, first, "*", second)
 
-    def evaluate(self):
+    def evaluate(self, variables):
         """Return the product of first and second."""
-        return first.evaluate() * second.evaluate()
+        return first.evaluate(variables) * second.evaluate(variables)
 
     def __repr__(self):
         return "ProductOp({0!r}, {1!r})".format(self.first, self.second)
@@ -165,7 +165,7 @@ class QuotientOp(BinaryOp):
         __init__(self, first, second)
             Initialise the attributes; the operator is not necessary.
 
-        evaluate(self)
+        evaluate(self, variables)
             Return the quotient of first and second.
 
     """
@@ -173,9 +173,9 @@ class QuotientOp(BinaryOp):
         """Initialise the attributes."""
         BinaryOp.__init__(self, first, "/", second)
 
-    def evaluate(self):
+    def evaluate(self, variables):
         """Return the product of first and second."""
-        return first.evaluate() / second.evaluate()
+        return first.evaluate(variables) / second.evaluate(variables)
 
     def __repr__(self):
         return "QuotientOp({0!r}, {1!r})".format(self.first, self.second)
@@ -192,7 +192,7 @@ class PowerOp(BinaryOp):
         __init__(self, first, second)
             Initialise the attributes; the operator is not necessary.
 
-        evaluate(self)
+        evaluate(self, variables)
             Return the first to the power of the second.
 
     """
@@ -200,9 +200,9 @@ class PowerOp(BinaryOp):
         """Initialise the attributes."""
         BinaryOp.__init__(self, first, "^", second)
 
-    def evaluate(self):
+    def evaluate(self, variables):
         """Return the first to the power of the second."""
-        return first.evaluate() ** second.evaluate()
+        return first.evaluate(variables) ** second.evaluate(variables)
 
     def __repr__(self):
         return "PowerOp({0!r}, {1!r})".format(self.first, self.second)
