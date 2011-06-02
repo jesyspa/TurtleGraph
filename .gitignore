@@ -3,3 +3,5 @@
 *.toc
 *.aux
 specifications.log
+parser.out
+parsetab.py

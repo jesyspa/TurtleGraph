@@ -10,7 +10,8 @@ repr_to_expr_tree(expr_string)
 
 def str_to_expr_tree(expr_string):
     """Return an expression tree based on a human-readable string."""
-    raise NotImplementedError()
+    import human
+    return human.get_parser().parse(expr_string)
 
 def repr_to_expr_tree(expr_string):
     """Return an expression tree based on a technical string."""
