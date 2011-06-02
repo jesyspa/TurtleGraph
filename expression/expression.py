@@ -7,8 +7,8 @@ class Expression(object):
 
     This class represents an interface that classes that can represent a full
     mathematical expression (such as BinaryOp, Variable and Constant) should
-    follow.  By default, all methods except __repr__ raise a NotImplemented
-    exception, and must therefore be overriden in any subclasses.
+    follow.  By default, all methods except __repr__ raise a
+    NotImplementedError exception, and must therefore be overriden in any subclasses.
 
     Methods:
         evaluate(self, variables)
@@ -28,11 +28,11 @@ class Expression(object):
         variables   A dictionary of variable name and value pairs.
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __str__(self):
         """Return a human-readable representation of the expression."""
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __repr__(self):
         """Return a more detailed representation of the expression.
