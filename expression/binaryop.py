@@ -182,7 +182,7 @@ class QuotientOp(BinaryOp):
         self._second.evaluate(variables))
 
     def __repr__(self):
-        return "QuotientOp({0!r}, {1!r})".format(self.first, self.second)
+        return "QuotientOp({0!r}, {1!r})".format(self._first, self._second)
 
 
 class PowerOp(BinaryOp):
@@ -210,6 +210,6 @@ class PowerOp(BinaryOp):
         self._second.evaluate(variables))
 
     def __repr__(self):
-        return "PowerOp({0!r}, {1!r})".format(self.first, self.second)
+        return "PowerOp({0!r}, {1!r})".format(self._first, self._second)
 
 
