@@ -9,5 +9,5 @@ Variable    Represent a variable in an expression
 """
 
 # Expression is not in __all__, as it should not be used externally.
-__all__ = [binaryop]
+__all__ = ['constant', 'variable', 'binaryop']
 
