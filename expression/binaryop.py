@@ -32,9 +32,9 @@ class BinaryOp(expression.Expression):
             Return a technical string representing this expression.
 
     Attributes:
-        first     The expression to the left of the operator.
-        operator  A string representation of the operator.
-        second    The expression to teh right of the operator.
+        _first     The expression to the left of the operator.
+        _operator  A string representation of the operator.
+        _second    The expression to teh right of the operator.
 
     """
     def __init__(self, first, operator, second):
@@ -48,9 +48,9 @@ class BinaryOp(expression.Expression):
         second    second subexpression
 
         """
-        self.first = first
-        self.second = second
-        self.operator = operator
+        self._first = first
+        self._second = second
+        self._operator = operator
 
     def __str__(self):
         """Return a human-readable string representation of this expression.
@@ -59,15 +59,15 @@ class BinaryOp(expression.Expression):
         two subexpressions linked with the operator.
 
         """
-        return "".join(['(', str(self.first), self.operator, str(self.second),
-        ')'])
+        return "".join(['(', str(self._first), self._operator,
+        str(self._second), ')'])
 
     def __repr__(self):
         """Return a technical string representing this expression."""
         return "BinaryOp({0!r}, {1}, {2!r})".format(
-            self.first,
-            self.operator,
-            self.second
+            self._first,
+            self._operator,
+            self._second
         )
 
 
@@ -93,10 +93,11 @@ class SumOp(BinaryOp):
 
     def evaluate(self, variables):
         """Return the sum of first and second."""
-        return first.evaluate(variables) + second.evaluate(variables)
+        return (self._first.evaluate(variables) +
+        self._second.evaluate(variables))
 
     def __repr__(self):
-        return "SumOp({0!r}, {1!r})".format(self.first, self.second)
+        return "SumOp({0!r}, {1!r})".format(self._first, self._second)
 
 
 class DifferenceOp(BinaryOp):
@@ -121,10 +122,11 @@ class DifferenceOp(BinaryOp):
 
     def evaluate(self, variables):
         """Return the difference of first and second."""
-        return first.evaluate(variables) - second.evaluate(variables)
+        return (self._first.evaluate(variables) -
+        self._second.evaluate(variables))
 
     def __repr__(self):
-        return "DiffOp({0!r}, {1!r})".format(self.first, self.second)
+        return "DiffOp({0!r}, {1!r})".format(self._first, self._second)
 
 
 class ProductOp(BinaryOp):
@@ -148,10 +150,11 @@ class ProductOp(BinaryOp):
 
     def evaluate(self, variables):
         """Return the product of first and second."""
-        return first.evaluate(variables) * second.evaluate(variables)
+        return (self._first.evaluate(variables) *
+        self._second.evaluate(variables))
 
     def __repr__(self):
-        return "ProductOp({0!r}, {1!r})".format(self.first, self.second)
+        return "ProductOp({0!r}, {1!r})".format(self._first, self._second)
 
 
 class QuotientOp(BinaryOp):
@@ -175,7 +178,8 @@ class QuotientOp(BinaryOp):
 
     def evaluate(self, variables):
         """Return the product of first and second."""
-        return first.evaluate(variables) / second.evaluate(variables)
+        return (self._first.evaluate(variables) /
+        self._second.evaluate(variables))
 
     def __repr__(self):
         return "QuotientOp({0!r}, {1!r})".format(self.first, self.second)
@@ -202,7 +206,8 @@ class PowerOp(BinaryOp):
 
     def evaluate(self, variables):
         """Return the first to the power of the second."""
-        return first.evaluate(variables) ** second.evaluate(variables)
+        return (self._first.evaluate(variables) **
+        self._second.evaluate(variables))
 
     def __repr__(self):
         return "PowerOp({0!r}, {1!r})".format(self.first, self.second)
