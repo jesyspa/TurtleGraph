@@ -45,5 +45,5 @@ class Variable(expression.Expression):
 
     def __repr__(self):
         """Return a technical string representing this expression."""
-        return "Variable({0})".format(self._name)
+        return "Variable('{0}')".format(self._name)
 

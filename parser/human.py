@@ -5,24 +5,25 @@ in this module that start with a t_ or a p_ do not have standard docstrings.
 Please consult the comments instead.
 
 Grammar:
-sum      : sum SUMOP product
-         | product
-         ;
-product  : product PRODOP power
-         | power
-         ;
-power    : value POWOP power
-         | SUMOP value
+expr     : expr SUMOP expr
+         | expr DIFFOP expr
+         | expr PRODOP expr
+         | expr QUOTOP expr
+         | expr POWOP expr
+         | OPPAR QUOTOP CLPAR
+         | DIFFOP expr (UMINUS precedence)
+         | SUMOP expr  (UPLUS precedence)
          | value
          ;
-value    : OPPAR sum CLPAR
-         | CONSTANT
+value    : CONSTANT
          | VARIABLE
          ;
 OPPAR    | '(' ;
 CLPAR    | ')' ;
-SUMOP    : '+' | '-' ;
-PRODOP   : '*' | '/' ;
+SUMOP    : '+' ;
+DIFFOP   : '-' ;
+PRODOP   : '*' ;
+QUOTOP   : '/' ;
 POWEROP  : '^' ;
 CONSTANT : '0' .. '9'+
          | '0' .. '9'+ '.' '0' .. '9'+
@@ -30,6 +31,8 @@ CONSTANT : '0' .. '9'+
 VARIABLE : ('a' .. 'z' | 'A' .. 'Z')+ ;
 
 """
+
+# It may be a good idea to rewrite this to be in classes...
 
 ###############################################################################
 ###########                 Defining lexer rules                   ############
@@ -42,19 +45,43 @@ import expression.variable
 # List of token names.  These are required by both the lexer and parser, so
 # they must be imported by the parser module if it is ever split.
 tokens = (
+    "NOTIMPLEMENTED",
+    "BADCOMMA",
+    "BADPOWOP",
     "OPPAR",
     "CLPAR",
     "SUMOP",
+    "DIFFOP",
     "PRODOP",
+    "QUOTOP",
     "POWOP",
     "VARIABLE",
-    "CONSTANT"
+    "CONSTANT",
+    "UPLUS", # only for precedence
+    "UMINUS", # only for precedence
 )
+
+# Handles errors of not-implemented operators and tokens.
+def t_NOTIMPLEMENTED(t):
+    "[<>=]=?"
+    raise NotImplementedError(
+        "Sorry, operator `{0}' is not yet implemented.".format(t.value))
+
+# Handles the usage of , as a decimal point.
+def t_BADCOMMA(t):
+    "[0-9]+,[0-9]+"
+    raise Exception("Unknown symbol `,'.  The decimal point is a `.'.")
+
+def t_BADPOWOP(t):
+    r"\*\*"
+    raise Exception("Power operator is `^', not `**'.")
 
 t_OPPAR = r"\("
 t_CLPAR = r"\)"
-t_SUMOP = r"\+|-"
-t_PRODOP = r"\*|/"
+t_SUMOP = r"\+"
+t_DIFFOP = r"-"
+t_PRODOP = r"\*"
+t_QUOTOP = r"/"
 t_POWOP = r"\^"
 
 # Let's handle the variables and constants here for simplicity.
@@ -69,9 +96,12 @@ def t_CONSTANT(t):
     t.value = expression.constant.Constant(t.value)
     return t
 
-# Getting the column number would be nice, too.
+# If we encounter an error, we want to grab anything until we reach whitespace.
 def t_error(t):
-    raise Exception("Unknown symbol `{0}'.".format(t.value))
+    import re
+    pattern = re.compile("[^ \t\n]+")
+    raise Exception("Unknown symbol `{0}'.".format(
+        pattern.match(t.value).group(0)))
 
 # Currently ignoring newlines -- may want to change that at some point.
 t_ignore = " \t\n"
@@ -87,58 +117,80 @@ t_ignore = " \t\n"
 from ply import yacc
 import expression.binaryop
 
-# There's a way to rewrite this to be neater using operator precedence.  As
-# things are, this way works equally well.
+precedence = (
+    ('left', 'SUMOP', 'DIFFOP'),
+    ('left', 'PRODOP', 'QUOTOP'),
+    ('right', 'UPLUS', 'UMINUS'),
+    ('right', 'POWOP'),
+    ('left', 'CLPAR')
+)
 
-def p_sum(p):
-    "sum :  sum SUMOP product"
-    if p[2] == '+':
-        p[0] = expression.binaryop.SumOp(p[1], p[3])
-    else:
-        p[0] = expression.binaryop.DifferenceOp(p[1], p[3])
+def p_error_empty(p):
+    "expr : "
+    raise Exception("Nothing to parse.")
 
-def p_promote_sum(p):
-    "sum :  product"
-    p[0] = p[1]
+def p_error_function(p):
+    "expr : VARIABLE OPPAR expr CLPAR"
+    raise Exception("Functions are currently not supported.  "
+        "Offending piece: ``{0}({1})''.".format(p[1], p[3]))
 
-def p_product(p):
-    "product :  product PRODOP power"
-    if p[2] == '*':
-        p[0] = expression.binaryop.ProductOp(p[1], p[3])
-    else:
-        p[0] = expression.binaryop.QuotientOp(p[1], p[3])
+def p_error_implicit_multiplication(p):
+    "expr : CONSTANT OPPAR expr CLPAR"
+    raise Exception("Implicit multiplication is currently not supported.  "
+        "Offending piece: ``{0}({1})''.".format(p[1], p[3]))
 
-def p_promote_product(p):
-    "product :  power"
-    p[0] = p[1]
+def p_error_implicit_bracket_multiplication(p):
+    "expr : OPPAR expr CLPAR OPPAR expr CLPAR"
+    raise Exception("Implicit multiplication is currently not supported.  "
+        "Offending piece: ``{0}({1})''.".format(p[2], p[5]))
 
-def p_power(p):
-    "power :  value POWOP power"
+def p_error_wrong_power_op(p):
+    "expr : PRODOP PRODOP"
+    raise Exception("Power operator is `^', not `**'.")
+
+def p_expr_sum(p):
+    "expr : expr SUMOP expr"
+    p[0] = expression.binaryop.SumOp(p[1], p[3])
+
+def p_expr_difference(p):
+    "expr : expr DIFFOP expr"
+    p[0] = expression.binaryop.DifferenceOp(p[1], p[3])
+
+def p_expr_product(p):
+    "expr : expr PRODOP expr"
+    p[0] = expression.binaryop.ProductOp(p[1], p[3])
+
+def p_expr_quotient(p):
+    "expr : expr QUOTOP expr"
+    p[0] = expression.binaryop.QuotientOp(p[1], p[3])
+
+def p_expr_power(p):
+    "expr : expr POWOP expr"
     p[0] = expression.binaryop.PowerOp(p[1], p[3])
 
-def p_promote_power(p):
-    """
-    power :  SUMOP value
-          |  value
-    """
-    if len(p) == 3:
-        if p[2] == '+':
-            p[0] = p[2]
-        else:
-            p[0] = expression.binaryop.DifferenceOp(0, p[2])
-    else:
-        p[0] = p[1]
+def p_expr_parens(p):
+    "expr :  OPPAR expr CLPAR"
+    p[0] = p[2]
+
+def p_expr_uplus(p):
+    "expr : SUMOP expr %prec UPLUS"
+    p[0] = p[2]
+
+def p_expr_uminus(p):
+    "expr : DIFFOP expr %prec UMINUS"
+    p[0] = expression.binaryop.DifferenceOp(
+        expression.constant.Constant(0), p[2])
+
+def p_expr_value(p):
+    "expr : value"
+    p[0] = p[1]
 
 def p_value(p):
     """
-    value :  OPPAR sum CLPAR
-          |  VARIABLE
+    value :  VARIABLE
           |  CONSTANT
     """
-    if len(p) == 4:
-        p[0] = p[2]
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
 
 #  It'd be nice if this error message was more informative.
 def p_error(p):
@@ -153,20 +205,24 @@ def get_lexer():
 
     Relying on PLY to optimise away lexer creation if it is already done.
 
+    This function has the default configuration directory hard-coded.
+
     """
     import os.path
     tgdir = os.path.expanduser("~/.turtlegraph/")
-    return lex.lex(outputdir=tgdir)
+    return lex.lex(outputdir=tgdir, lextab="humanlex")
 
 def get_parser():
     """Retrieve an instance of the parser.
 
     Relying on PLY to optimise away parser creation if it is already done.
     
+    This function has the default configuration directory hard-coded.
+
     """
     get_lexer() # ensure that the lexer exists
     import os.path
     tgdir = os.path.expanduser("~/.turtlegraph/")
-    return yacc.yacc(outputdir=tgdir)
+    return yacc.yacc(outputdir=tgdir, tabmodule="humanparse")
 
 

@@ -126,7 +126,7 @@ class DifferenceOp(BinaryOp):
         self._second.evaluate(variables))
 
     def __repr__(self):
-        return "DiffOp({0!r}, {1!r})".format(self._first, self._second)
+        return "DifferenceOp({0!r}, {1!r})".format(self._first, self._second)
 
 
 class ProductOp(BinaryOp):
