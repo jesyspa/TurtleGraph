@@ -316,6 +316,8 @@ class Test_HumanParse(object):
             "supported.  Offending piece: ``5.0((6.0 + x))''.")),
             ("2(x+3)+7", (Exception, "Implicit multiplication is currently not "
             "supported.  Offending piece: ``2.0((x + 3.0))''.")),
+            ("(x+3)(6+x)", (Exception, "Implicit multiplication is currently not "
+            "supported.  Offending piece: ``((x + 3.0))((6.0 + x))''.")),
             # other
             ("5+++3", (Exception, "Syntax error at `+'.")),
             ("6.0 7", (Exception, "Syntax error at `7.0'.")),

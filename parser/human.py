@@ -142,7 +142,7 @@ def p_error_implicit_multiplication(p):
 def p_error_implicit_bracket_multiplication(p):
     "expr : OPPAR expr CLPAR OPPAR expr CLPAR"
     raise Exception("Implicit multiplication is currently not supported.  "
-        "Offending piece: ``{0}({1})''.".format(p[2], p[5]))
+        "Offending piece: ``({0})({1})''.".format(p[2], p[5]))
 
 def p_error_wrong_power_op(p):
     "expr : PRODOP PRODOP"
