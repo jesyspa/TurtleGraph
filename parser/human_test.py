@@ -27,7 +27,7 @@ class Test_HumanLex(object):
     """
     @classmethod
     def setUpClass(cls):
-        cls.lexer = human.get_lexer()
+        cls.lexer = human.Tokenizer()
 
     def test_tokenize(self):
         # Ensure correct tokenization.
@@ -195,7 +195,7 @@ class Test_HumanParse(object):
     """
     @classmethod
     def setUpClass(cls):
-        cls.parser = human.get_parser()
+        cls.parser = human.Parser()
 
     def test_operator_precedence(self):
         # Ensure that correct operator precedence is used.

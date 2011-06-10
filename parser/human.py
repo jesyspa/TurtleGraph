@@ -61,50 +61,81 @@ tokens = (
     "UMINUS", # only for precedence
 )
 
-# Handles errors of not-implemented operators and tokens.
-def t_NOTIMPLEMENTED(t):
-    "[<>=]=?"
-    raise NotImplementedError(
-        "Sorry, operator `{0}' is not yet implemented.".format(t.value))
+class Tokenizer(object):
+    """Tokenizer of mathematical expressions.
 
-# Handles the usage of , as a decimal point.
-def t_BADCOMMA(t):
-    "[0-9]+,[0-9]+"
-    raise Exception("Unknown symbol `,'.  The decimal point is a `.'.")
+    Written with PLY.  An object of this class behaves like an instance returned
+    by lex.lex().  __init__ accepts the same arguments as lex.lex().
 
-def t_BADPOWOP(t):
-    r"\*\*"
-    raise Exception("Power operator is `^', not `**'.")
+    Methods starting with t_ are internal, do not use them separately.
 
-t_OPPAR = r"\("
-t_CLPAR = r"\)"
-t_SUMOP = r"\+"
-t_DIFFOP = r"-"
-t_PRODOP = r"\*"
-t_QUOTOP = r"/"
-t_POWOP = r"\^"
+    Methods:
+        __init__(**kwargs)
+            Arguments to lex.lex()
 
-# Let's handle the variables and constants here for simplicity.
-# Formally, this is part of the parser, but there's no need to delay it.
-def t_VARIABLE(t):
-    "[a-zA-Z]+"
-    t.value = expression.variable.Variable(t.value)
-    return t
+        token
 
-def t_CONSTANT(t):
-    r"[0-9]+(\.[0-9]+)?"
-    t.value = expression.constant.Constant(t.value)
-    return t
+    """
+    def __init__(self, **kwargs):
+        """Build the lexer.
 
-# If we encounter an error, we want to grab anything until we reach whitespace.
-def t_error(t):
-    import re
-    pattern = re.compile("[^ \t\n]+")
-    raise Exception("Unknown symbol `{0}'.".format(
-        pattern.match(t.value).group(0)))
+        This constructs this into an instance of the lexer.
 
-# Currently ignoring newlines -- may want to change that at some point.
-t_ignore = " \t\n"
+        """
+        self.tokens = tokens
+        self.lexer = lex.lex(module=self, **kwargs)
+        self.token = self.lexer.token
+        self.input = self.lexer.input
+
+    ######################################################
+    ## Functions past this point are only needed by lex ##
+    ######################################################
+
+    # Handles errors of not-implemented operators and tokens.
+    def t_NOTIMPLEMENTED(self, t):
+        "[<>=]=?"
+        raise NotImplementedError(
+            "Sorry, operator `{0}' is not yet implemented.".format(t.value))
+
+    # Handles the usage of , as a decimal point.
+    def t_BADCOMMA(self, t):
+        "[0-9]+,[0-9]+"
+        raise Exception("Unknown symbol `,'.  The decimal point is a `.'.")
+
+    def t_BADPOWOP(self, t):
+        r"\*\*"
+        raise Exception("Power operator is `^', not `**'.")
+
+    t_OPPAR = r"\("
+    t_CLPAR = r"\)"
+    t_SUMOP = r"\+"
+    t_DIFFOP = r"-"
+    t_PRODOP = r"\*"
+    t_QUOTOP = r"/"
+    t_POWOP = r"\^"
+
+    # Let's handle the variables and constants here for simplicity.
+    # Formally, this is part of the parser, but there's no need to delay it.
+    def t_VARIABLE(self, t):
+        "[a-zA-Z]+"
+        t.value = expression.variable.Variable(t.value)
+        return t
+
+    def t_CONSTANT(self, t):
+        r"[0-9]+(\.[0-9]+)?"
+        t.value = expression.constant.Constant(t.value)
+        return t
+
+    # If we encounter an error, we want to grab anything until we reach whitespace.
+    def t_error(self, t):
+        import re
+        pattern = re.compile("[^ \t\n]+")
+        raise Exception("Unknown symbol `{0}'.".format(
+            pattern.match(t.value).group(0)))
+
+    # Currently ignoring newlines -- may want to change that at some point.
+    t_ignore = " \t\n"
+
 
 ###############################################################################
 ###########                  End of lexer rules                    ############
@@ -116,6 +147,38 @@ t_ignore = " \t\n"
 
 from ply import yacc
 import expression.binaryop
+
+class Parser(object):
+    """Parser of mathematical expressions.
+
+    Written with PLY.  An object of this class behaves like an object returned
+    by yacc.yacc().  __init__ accepts the same parameters as yacc.yacc(), plus a
+    lexer parameter.  See the docstring of __init__ for details.
+
+    Methods starting with p_ are internal, do not use them separately.
+    
+    """
+    def __init__(self, lexer=None, **kwargs):
+        """Initialise the parser.
+
+        lexer - lexer to use
+        kwargs - args to pass to yacc.yacc
+
+        If no lexer is passed, a default one is used.
+
+        """
+        if lexer is None:
+            self.lexer = Tokenizer()
+        else:
+            self.lexer = lexer
+        self.parser = yacc.yacc(**kwargs)
+        
+    def parse(self, instring, lexer=None):
+        if lexer is None:
+            return self.parser.parse(instring, lexer=self.lexer)
+        else:
+            return self.parser.parse(instring, lexer=lexer)
+
 
 precedence = (
     ('left', 'SUMOP', 'DIFFOP'),
@@ -199,30 +262,4 @@ def p_error(p):
 ###############################################################################
 ###########                  End of parser rules                   ############
 ###############################################################################
-
-def get_lexer():
-    """Retrieve an instance of the lexer.
-
-    Relying on PLY to optimise away lexer creation if it is already done.
-
-    This function has the default configuration directory hard-coded.
-
-    """
-    import os.path
-    tgdir = os.path.expanduser("~/.turtlegraph/")
-    return lex.lex(outputdir=tgdir, lextab="humanlex")
-
-def get_parser():
-    """Retrieve an instance of the parser.
-
-    Relying on PLY to optimise away parser creation if it is already done.
-    
-    This function has the default configuration directory hard-coded.
-
-    """
-    get_lexer() # ensure that the lexer exists
-    import os.path
-    tgdir = os.path.expanduser("~/.turtlegraph/")
-    return yacc.yacc(outputdir=tgdir, tabmodule="humanparse")
-
 
