@@ -5,5 +5,5 @@ Classes:
 
 """
 
-__all__ = []
+__all__ = ['window']
 
